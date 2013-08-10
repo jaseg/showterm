@@ -165,7 +165,7 @@ module Showterm
     connection = Net::HTTP.new(url.host, url.port)
     if url.scheme =~ /https/i
       connection.use_ssl = true
-      connection.verify_mode = OpenSSL::SSL::VERIFY_NONE
+      connection.verify_mode = OpenSSL::SSL::VERIFY_PEER
     end
     connection.open_timeout = 10
     connection.read_timeout = 10
