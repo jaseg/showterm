@@ -3,6 +3,7 @@ require 'shellwords'
 require 'net/https'
 
 module Showterm
+
   extend self
 
   # Record a terminal session.
@@ -166,6 +167,7 @@ module Showterm
     if url.scheme =~ /https/i
       connection.use_ssl = true
       connection.verify_mode = OpenSSL::SSL::VERIFY_PEER
+	  connection.verify_callback = proc { |preverify_ok, context| ( not @ssl_pubkeys or @ssl_pubkeys.include? context.current_cert.public_key) and preverify_ok }
     end
     connection.open_timeout = 10
     connection.read_timeout = 10
@@ -179,4 +181,53 @@ module Showterm
   def url
     @url ||= URI(ENV["SHOWTERM_SERVER"] || "https://showterm.herokuapp.com")
   end
+
+  def ssl_pubkeys
+    @ssl_pubkeys = ENV["SHOWTERM_SERVER"] ? Nil : SHOWTERMIO_PUBKEYS.split("$#.*")[1..-1]
+  end
+
+  SHOWTERMIO_PUBKEYS = <<END
+#/O=Entrust.net/OU=www.entrust.net/CPS_2048 incorp. by ref. (limits liab.)/OU=(c) 1999 Entrust.net Limited/CN=Entrust.net Certification Authority (2048
+)
+-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArU1LqRKGsuqjIAcVFmQq
+K0vRvwtKTY7tgHalZ7d4QMBzQshowNtTK91euHaYNZOLGp18EzoOH1u3Hs/lJBQe
+sYGpjX24zGtLA/ECDNyrpUAkAH90lKGdCCmziAv1h3edVc3kw37XamSrhRSGlVuX
+MlBvPci6Zgzj/L24ScF2iUkZ/cCovYmjZy/Gn7xxGWC4LeksyZB2ZnuU4q941mVT
+XTzWnLLPKQP5L6RQstRIzgUyVYr9smRMDuSYB3Xbf9+5CFVghTAp+XtIpGmG4zU/
+HoZdenoVve8AjhUiVBcAkCaTvA5JaJG/+EfTnZVCwQ5N328mz8MYIWJmQ3DW1cAH
+4QIDAQAB
+-----END PUBLIC KEY-----
+#/C=US/O=DigiCert Inc/OU=www.digicert.com/CN=DigiCert High Assurance EV Root CA
+-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxszlc+b71LvlLS0ypt/l
+gT/JzSVJtnEqw9WUNGeiChywX2mmQLHEt7KP0JikqUFZOtPclNY823Q4pErMTSWC
+90qlUxI47vNJbXGRfmO2q6Zfw6SE+E9iUb74xezbOJLjBuUIkQzEKEFV+8taiRV+
+ceg1v01yCT2+OjhQW3cxG42zxyRFmqesbQAUWgS3uhPrUQqYQUEiTmVhh4FBUKZ5
+XIneGUpX1S7mXRxTLH6YzRoGFqRoc9A0BBNcoXHTWnxV215k4TeHMFYE5RG0KYAS
+8Xk5iKICEXwnZreIt3jyygqoOKsKZMK/Zl2VhMGhJR6HXRpQCyASzEG7bgtROLhL
+ywIDAQAB
+-----END PUBLIC KEY-----
+#/C=US/O=DigiCert Inc/OU=www.digicert.com/CN=DigiCert High Assurance CA-3
+-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv2EKKRAfXv40N1EI+B77
+Iu1hvgsNcExQYyZ1FblBiJe28KAVuwhg4ELoBSkQhzaKKGWo7zEHdG02ly8oRmYE
+xyp5JnqZ1Y7DbU+gXq28PZHCWXteNmzAU88ACDI+EGRYEBNpxwzunEJRAPkFRO4k
+znof7YwRvRKo8xX0HHoxaQEbp+ZdwJpsfgme51JEShA6I+SbtgOvqJy0W5/US62S
+jM61ESqqNxiNtMK42FwGjPj/I701XtR8Pn6DDpGWBZjDsh/jyGXrqXtdoCzM/DzZ
+be3M+ktDjMnUuKVhHLJAtigS37n4X/7TssnvPbQeS3wcTJk2nj3r7KdoXh3fZ25e
++wIDAQAB
+-----END PUBLIC KEY-----
+#/C=US/ST=California/L=San Francisco/O=Heroku, Inc./CN=*.herokuapp.com
+-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4NFOIp0lCNiVNrHMtZ7z
+cjhvKWbUne0p5lK/YozULHPWBT95Jk+LcAdq7C8wmsCRPTirPdYAMywGAdFgB32f
+9Do2odsohBkT4GNciFI09GjkBu1XR14mw2ooKT70Ldc7jCKyHdnbcMn/jb2PRIYU
+qx4SEtXSU/ERJ7sJDVOwERJcJheR0WCpAb3KUEFnAMRDIAMepZmx4BUGB1ZVeYrP
+dklT00FcJqWT1WG5nm4PMfp5TAP/nr3oNJDD07yEmGVFAfD3Z2kybiNa9taXphsg
+sop/dINAKj8u5pMPrgIaWQbyVK9nSbFl4hI4cWz/b5PEPK8KKzQ7JlguKDRyxYmI
+jQIDAQAB
+-----END PUBLIC KEY-----
+END
+
 end
