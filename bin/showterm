@@ -21,15 +21,34 @@ class Showterm::Main
 
     else
 
-      if '-e' == ARGV[0] || '--edit' == ARGV[0]
-        @edit_timings = true
+      while true
+        if ['-e', '--edit'].include?(ARGV[0])
+          @edit_timings = true
+        elsif ['-n', '--noconfirm'].include?(ARGV[0])
+          @no_confirm = true
+        elsif ['-ne', '-en'].include?(ARGV[0])
+          @edit_timings, @no_confirm = true, true
+        else
+          break
+        end
         ARGV.shift
       end
 
       sf, tf = record
       sf, tf = edit(sf, tf) if @edit_timings
+      abort_upload! unless @no_confirm or confirm
       upload sf, tf
     end
+  end
+
+  def abort_upload! 
+	  puts 'Upload aborted.'
+	  exit 1
+  end
+
+  def confirm
+    print 'Upload recording? (y/n)> '
+    /y(es)?/i =~ STDIN.gets.chomp()
   end
 
   def record
